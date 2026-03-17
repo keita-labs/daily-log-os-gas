@@ -62,7 +62,15 @@ function showTriggerGuide() {
  * @param {boolean} isTrigger - トリガー実行かどうかのフラグ
  */
 function executeProcess(isTrigger) {
-  const ui = SpreadsheetApp.getUi();
+  let ui = null;
+  if (!isTrigger) {
+    try {
+      ui = SpreadsheetApp.getUi();
+    } catch (e) {
+      // Webからの実行などUIがないコンテキストの場合は無視
+    }
+  }
+  
   try {
     // 1. 設定読み込みと検証
     const config = loadConfig();
@@ -85,14 +93,14 @@ function executeProcess(isTrigger) {
                 `スキップ: ${summary.skip}件\n` + 
                 `エラー　: ${summary.fail}件`;
     
-    if (!isTrigger) {
+    if (!isTrigger && ui) {
       ui.alert('実行完了', msg, ui.ButtonSet.OK);
     }
     console.log(msg);
 
   } catch (e) {
     const errorMsg = '処理中に致命的なエラーが発生し、停止しました:\n\n' + e.message;
-    if (!isTrigger) {
+    if (!isTrigger && ui) {
       ui.alert('エラー停止', errorMsg, ui.ButtonSet.OK);
     }
     console.error(errorMsg);
